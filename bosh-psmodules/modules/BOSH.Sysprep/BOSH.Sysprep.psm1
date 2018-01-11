@@ -231,12 +231,12 @@ function Create-Unattend-GCP-1200() {
         </component>
     </settings>
     <settings pass="specialize">
-        <component name="Microsoft-Windows-Deployment" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <component name="Microsoft-Windows-Deployment" processorArchitecture="x86" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <ExtendOSPartition>
                 <Extend>true</Extend>
             </ExtendOSPartition>
         </component>
-        <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd6" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <!-- Random ComputerName, will be replaced by specialize script -->
             <ComputerName></ComputerName>
             <TimeZone>Greenwich Standard Time</TimeZone>
@@ -430,6 +430,39 @@ function Remove-UserAccounts {
     $content.Save($AnswerFilePath)
 }
 
+
+function Set-ProtectYourPC() {
+    Param (
+        [string]$AnswerFilePath,
+        [int]$ProtectYourPC = 1
+    )
+
+    If (($ProtectYourPC -lt 1) -or ($ProtectYourPC -gt 3)) {
+        Throw "Invalid value: ProtectYourPC should be an integer from 1 to 3, inclusive"
+    }
+
+    If (!$(Test-Path $AnswerFilePath)) {
+        Throw "Answer file $AnswerFilePath does not exist"
+    }
+
+    Write-Log "Setting ProtectYourPC to $ProtectYourPC in the Answer File"
+    
+    $content = [xml](Get-Content $AnswerFilePath)
+    $mswShellSetup =  (($content.unattend.settings|where {$_.pass -eq 'oobeSystem'}).component|where {$_.name -eq "Microsoft-Windows-Shell-Setup"})
+
+    If ($mswShellSetup -eq $Null) {
+        Throw "Could not locate oobeSystem XML block. You may not be running this function on an answer file."
+    }
+
+    $protectYourPCBlock = $mswShellSetup.OOBE.ProtectYourPC
+    
+    If ($protectYourPCBlock.Count -eq 0) {
+        Throw "Could not locate ProtectYourPC XML block. You may not be running this function on an answer file."
+    }
+
+    
+}
+
 <#
 .Synopsis
     Sysprep Utilities
@@ -506,6 +539,7 @@ function Invoke-Sysprep() {
         "gcp" {
             $AnswerFilePath = "C:\Program Files\Google\Compute Engine\sysprep\unattended.xml"
             Check-Default-GCP-Unattend $AnswerFilePath
+            Set-ProtectYourPC $AnswerFilePath 3
             switch ($OsVersion) {
                 "windows2012R2" {
                     Create-Unattend-GCP-1200 $AnswerFilePath

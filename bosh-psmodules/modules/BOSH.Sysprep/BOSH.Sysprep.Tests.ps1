@@ -267,7 +267,7 @@ Describe "Remove-UserAccounts" {
             Remove-Item -Recurse -Force $noOOBEXmlDirectory
         }
 
-        It "does nothing" {
+        It "throws" {
             { Remove-UserAccounts -AnswerFilePath $noOOBEXmlPath } | Should Throw "Could not locate oobeSystem XML block. You may not be running this function on an answer file."
         }
     }
@@ -327,6 +327,128 @@ Describe "Remove-UserAccounts" {
         }
     }
 }
+
+Describe "Set-ProtectYourPC" {
+    Context "when no answer file path is provided" {
+        It "throws" {
+            { Set-ProtectYourPC } | Should Throw "Cannot bind argument to parameter 'Path' because it is an empty string."
+        }
+    }
+
+    Context "when provided a nonexistent answer file" {
+        It "throws" {
+            { Set-ProtectYourPC -AnswerFilePath "C:\IDoNotExist.xml" } | Should Throw "Answer file C:\IDoNotExist.xml does not exist"
+        }
+    }
+
+    Context "when provided an answer file with invalid XML" {
+        BeforeEach {
+            $BadAnswerXmlDirectory = (New-TempDir)
+            $BadAnswerXmlPath = Join-Path $BadAnswerXmlDirectory "bad.xml"
+
+            "bad xml" | Out-File $BadAnswerXmlPath
+        }
+
+        AfterEach {
+            Remove-Item -Recurse -Force $BadAnswerXmlDirectory
+        }
+
+        It "throws" {
+            { Set-ProtectYourPC -AnswerFilePath $BadAnswerXmlPath } | Should Throw "Cannot convert value `"bad xml`" to type `"System.Xml.XmlDocument`". Error: `"The specified node cannot be inserted as the valid child of this node, because the specified node is the wrong type.`""
+        }
+    }
+
+    #Context "when provided a correct answer file but no ProtectYourPC value" {
+     #   It "succeeds by using the default ProtectYourPC value" {
+            
+      #  }
+    #}
+
+    Context "when provided a ProtectYourPC value below the acceptable range of values" {
+        It "throws" {
+            { Set-ProtectYourPC -AnswerFilePath "foo.xml" -ProtectYourPC 0 } | Should Throw "Invalid value: ProtectYourPC should be an integer from 1 to 3, inclusive"
+        }
+    }
+
+    Context "when provided a ProtectYourPC value above the acceptable range of values" {
+        It "throws" {
+            { Set-ProtectYourPC -AnswerFilePath "foo.xml" -ProtectYourPC 4 } | Should Throw "Invalid value: ProtectYourPC should be an integer from 1 to 3, inclusive"
+        }
+    }
+
+    Context "when provided an answer file containing XML but without an 'oobeSystem' block containing 'Microsoft-Windows-Shell-Setup'" {
+        BeforeEach {
+            $NoOOBEXmlDirectory = (New-TempDir)
+            $NoOOBEXmlPath = Join-Path $noOOBEXmlDirectory "invalidanswer.xml"
+
+            "<unattend>
+                <settings pass=`"Not-oobeSystem`">
+                    <component name=`"Microsoft-Windows-Shell-Setup`">
+                    </component>
+                </settings>
+            </unattend>" | Out-File $NoOOBEXmlPath
+        }
+
+        AfterEach {
+            Remove-Item -Recurse -Force $NoOOBEXmlDirectory
+        }
+
+        It "throws" {
+            { Set-ProtectYourPC -AnswerFilePath $NoOOBEXmlPath } | Should Throw "Could not locate oobeSystem XML block. You may not be running this function on an answer file."
+        }
+    }
+
+    Context "when provided a valid XML answer file containing an 'oobeSystem' block which contains a 'Microsoft-Windows-Shell-Setup' block which DOES NOT contain a 'ProtectYourPC' block" {
+        BeforeEach {
+            $NoProtectYourPCDirectory = (New-TempDir)
+            $NoProtectYourPCFilePath = Join-Path $NoProtectYourPCDirectory "invalidanswer.xml"
+
+            "<unattend>
+                <settings pass=`"oobeSystem`">
+                    <component name=`"Microsoft-Windows-Shell-Setup`">
+                    </component>
+                </settings>
+            </unattend>" | Out-File $NoProtectYourPCFilePath
+        }
+
+        AfterEach {
+            Remove-Item -Recurse -Force $NoProtectYourPCDirectory
+        }
+
+        It "throws" {
+            { Set-ProtectYourPC -AnswerFilePath $NoProtectYourPCFilePath } | Should Throw "Could not locate ProtectYourPC XML block. You may not be running this function on an answer file."
+        }
+    }
+
+    Context "when provided a valid XML answer file containing an 'oobeSystem' block which contains a 'Microsoft-Windows-Shell-Setup' block which contains a 'ProtectYourPC' block and no specified ProtectYourPC value" {
+        BeforeEach {
+            $GoodAnswerDirectory = (New-TempDir)
+            $GoodAnswerFilePath = Join-Path $GoodAnswerDirectory "validanswer.xml"
+
+            "<unattend>
+                <settings pass=`"oobeSystem`">
+                    <component name=`"Microsoft-Windows-Shell-Setup`">
+                        <OOBE>
+                            <ProtectYourPC>3</ProtectYourPC>
+                        </OOBE>
+                    </component>
+                </settings>
+            </unattend>" | Out-File $GoodAnswerFilePath
+        }
+
+        AfterEach {
+            Remove-Item -Recurse -Force $GoodAnswerDirectory
+        }
+
+        It "sets the ProtectYourPC value to the default" {
+            Set-ProtectYourPC -AnswerFilePath $GoodAnswerFilePath  
+            $content = [xml](Get-Content $GoodAnswerFilePath)
+            $protectYourPCBlock = (($content.unattend.settings|where {$_.pass -eq 'oobeSystem'}).component|where {$_.name -eq "Microsoft-Windows-Shell-Setup"}).OOBE.ProtectYourPC
+            $protectYourPCBlock.Value | Should be "1"
+        }
+    }
+}
+
 
 Describe "Invoke-Sysprep" {
     Context "when not provided an IaaS" {
