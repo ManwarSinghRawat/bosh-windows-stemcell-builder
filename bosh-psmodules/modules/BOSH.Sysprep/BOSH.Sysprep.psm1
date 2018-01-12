@@ -267,18 +267,24 @@ function Set-EnableOSPartitionProcessorArchitecture() {
         Throw "Answer file $AnswerFilePath does not exist"
     }
 
-    Write-Log "Setting processorArchitecture attribute to $ProcessorArchitecture for 'Microsoft-Windows-Deployment' in the Answer File"
+    Write-Log "Setting processorArchitecture attribute to '$ProcessorArchitecture' for 'Microsoft-Windows-Deployment' in the Answer File"
 
     $content = [xml](Get-Content $AnswerFilePath)
 
     $deploymentComponent = (($content.unattend.settings|where {$_.pass -eq 'specialize'}).component|where {$_.name -eq "Microsoft-Windows-Deployment"})
     If ($deploymentComponent.Count -eq 0) {
+        Write-Log foooooo
         Throw "Answer file does not contain a 'Microsoft-Windows-Deployment' specialize block."
+        Write-Log baaaaar
     }
-
+    Write-Log blllllaaaaaaaaaaaa
     $deploymentComponent.SetAttribute("processorArchitecture", $ProcessorArchitecture)
-
+    Write-Log $deploymentComponent.GetAttribute("processorArchitecture")
+    Write-Log $AnswerFilePath
     $content.Save($AnswerFilePath)
+    $content2 = [xml](Get-Content $AnswerFilePath)
+    $deploymentComponent2 = (($content2.unattend.settings|where {$_.pass -eq 'specialize'}).component|where {$_.name -eq "Microsoft-Windows-Deployment"})
+    Write-Log $deploymentComponent2.GetAttribute("processorArchitecture")
 }
 
 <#
@@ -356,8 +362,15 @@ function Invoke-Sysprep() {
         }
         "gcp" {
             $AnswerFilePath = "C:\Program Files\Google\Compute Engine\sysprep\unattended.xml"
+            Write-Log "Before Set-ProtectYourPC"
+            Write-Log (Get-Content $AnswerFilePath)
             Set-ProtectYourPC $AnswerFilePath 3
+            Write-Log "After Set-ProtectYourPC"
+            Write-Log (Get-Content $AnswerFilePath)
+            Write-Log "Before Set-EnableOSPartitionProcessorArchitecture"
             Set-EnableOSPartitionProcessorArchitecture $AnswerFilePath "x64"
+            Write-Log "After Set-EnableOSPartitionProcessorArchitecture"
+            Write-Log (Get-Content $AnswerFilePath)
             # Exec sysprep and shutdown
             GCESysprep
         }
