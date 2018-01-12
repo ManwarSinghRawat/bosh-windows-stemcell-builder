@@ -132,221 +132,6 @@ function Create-Unattend {
     Write-Log "Starting Create-Unattend"
 }
 
-<#
-.Synopsis
-    Sanity check that the unattend.xml shipped with GCP has not changed.
-.Description
-    Sanity check that the unattend.xml shipped with GCP has not changed.
-#>
-function Check-Default-GCP-Unattend() {
-    Param (
-        [string]$AnswerFilePath
-    )
-
-    If (!$(Test-Path $AnswerFilePath)) {
-        Throw "Answer file $AnswerFilePath does not exist"
-    }
-
-    [xml]$Expected = @'
-<?xml version="1.0" encoding="utf-8"?>
-<unattend xmlns="urn:schemas-microsoft-com:unattend">
-    <!--
-    For more information about unattended.xml please refer too
-    http://technet.microsoft.com/en-us/library/cc722132(v=ws.10).aspx
-    -->
-    <settings pass="generalize">
-        <component name="Microsoft-Windows-PnpSysprep" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-            <PersistAllDeviceInstalls>true</PersistAllDeviceInstalls>
-        </component>
-    </settings>
-    <settings pass="specialize">
-        <component name="Microsoft-Windows-Deployment" processorArchitecture="x86" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-            <ExtendOSPartition>
-                <Extend>true</Extend>
-            </ExtendOSPartition>
-        </component>
-        <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-            <!-- Random ComputerName, will be replaced by specialize script -->
-            <ComputerName></ComputerName>
-            <TimeZone>Greenwich Standard Time</TimeZone>
-        </component>
-    </settings>
-    <settings pass="oobeSystem">
-        <!-- Setting Location Information -->
-        <component name="Microsoft-Windows-International-Core" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-            <InputLocale>en-us</InputLocale>
-            <SystemLocale>en-us</SystemLocale>
-            <UILanguage>en-us</UILanguage>
-            <UserLocale>en-us</UserLocale>
-        </component>
-        <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-            <OOBE>
-                <!-- Setting EULA -->
-                <HideEULAPage>true</HideEULAPage>
-                <!-- Setting network location to public -->
-                <NetworkLocation>Other</NetworkLocation>
-                <!-- Hide Wirelss setup -->
-                <HideWirelessSetupInOOBE>true</HideWirelessSetupInOOBE>
-                <ProtectYourPC>1</ProtectYourPC>
-                <SkipMachineOOBE>true</SkipMachineOOBE>
-                <SkipUserOOBE>true</SkipUserOOBE>
-            </OOBE>
-            <!-- Setting timezone to GMT -->
-            <ShowWindowsLive>false</ShowWindowsLive>
-            <TimeZone>Greenwich Standard Time</TimeZone>
-            <!--Setting OEM information -->
-            <OEMInformation>
-                <Manufacturer>Google Cloud Platform</Manufacturer>
-                <Model>Google Compute Engine Virtual Machine</Model>
-                <SupportURL>https://support.google.com/enterprisehelp/answer/142244?hl=en#cloud</SupportURL>
-                <Logo>C:\Program Files\Google Compute Engine\sysprep\gcp.bmp</Logo>
-            </OEMInformation>
-        </component>
-    </settings>
-</unattend>
-'@
-
-  [xml]$Unattend = (Get-Content -Path $AnswerFilePath)
-
-  if (-Not ($Unattend.xml.Equals($Expected.xml))) {
-    Write-Error "The unattend.xml shipped with GCP has changed."
-  }
-}
-
-function Create-Unattend-GCP-1200() {
-    Param (
-        [string]$AnswerFilePath
-    )
-
-  $UnattendXML = @'
-<?xml version="1.0" encoding="utf-8"?>
-<unattend xmlns="urn:schemas-microsoft-com:unattend">
-    <!--
-    For more information about unattended.xml please refer too
-    http://technet.microsoft.com/en-us/library/cc722132(v=ws.10).aspx
-    -->
-    <settings pass="generalize">
-        <component name="Microsoft-Windows-PnpSysprep" processorArchitecture="x86" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-            <PersistAllDeviceInstalls>true</PersistAllDeviceInstalls>
-        </component>
-    </settings>
-    <settings pass="specialize">
-        <component name="Microsoft-Windows-Deployment" processorArchitecture="x86" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-            <ExtendOSPartition>
-                <Extend>true</Extend>
-            </ExtendOSPartition>
-        </component>
-        <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd6" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-            <!-- Random ComputerName, will be replaced by specialize script -->
-            <ComputerName></ComputerName>
-            <TimeZone>Greenwich Standard Time</TimeZone>
-        </component>
-    </settings>
-    <settings pass="oobeSystem">
-        <!-- Setting Location Information -->
-        <component name="Microsoft-Windows-International-Core" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-            <InputLocale>en-us</InputLocale>
-            <SystemLocale>en-us</SystemLocale>
-            <UILanguage>en-us</UILanguage>
-            <UserLocale>en-us</UserLocale>
-        </component>
-        <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-            <OOBE>
-                <!-- Setting EULA -->
-                <HideEULAPage>true</HideEULAPage>
-                <!-- Setting network location to public -->
-                <NetworkLocation>Other</NetworkLocation>
-                <!-- Hide Wirelss setup -->
-                <HideWirelessSetupInOOBE>true</HideWirelessSetupInOOBE>
-                <ProtectYourPC>3</ProtectYourPC>
-                <SkipMachineOOBE>true</SkipMachineOOBE>
-                <SkipUserOOBE>true</SkipUserOOBE>
-            </OOBE>
-            <!-- Setting timezone to GMT -->
-            <ShowWindowsLive>false</ShowWindowsLive>
-            <TimeZone>Greenwich Standard Time</TimeZone>
-            <!--Setting OEM information -->
-            <OEMInformation>
-                <Manufacturer>Google Cloud Platform</Manufacturer>
-                <Model>Google Compute Engine Virtual Machine</Model>
-                <SupportURL>https://support.google.com/enterprisehelp/answer/142244?hl=en#cloud</SupportURL>
-                <Logo>C:\Program Files\Google Compute Engine\sysprep\gcp.bmp</Logo>
-            </OEMInformation>
-        </component>
-    </settings>
-</unattend>
-'@
-
-  Out-File -FilePath $AnswerFilePath -InputObject $UnattendXML -Encoding utf8 -Force
-}
-
-function Create-Unattend-GCP-1709() {
-    Param (
-        [string]$AnswerFilePath
-    )
-
-  $UnattendXML = @'
-<?xml version="1.0" encoding="utf-8"?>
-<unattend xmlns="urn:schemas-microsoft-com:unattend">
-    <!--
-    For more information about unattended.xml please refer too
-    http://technet.microsoft.com/en-us/library/cc722132(v=ws.10).aspx
-    -->
-    <settings pass="generalize">
-        <component name="Microsoft-Windows-PnpSysprep" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-            <PersistAllDeviceInstalls>true</PersistAllDeviceInstalls>
-        </component>
-    </settings>
-    <settings pass="specialize">
-        <component name="Microsoft-Windows-Deployment" processorArchitecture="x64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-            <ExtendOSPartition>
-                <Extend>true</Extend>
-            </ExtendOSPartition>
-        </component>
-        <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-            <!-- Random ComputerName, will be replaced by specialize script -->
-            <ComputerName></ComputerName>
-            <TimeZone>Greenwich Standard Time</TimeZone>
-        </component>
-    </settings>
-    <settings pass="oobeSystem">
-        <!-- Setting Location Information -->
-        <component name="Microsoft-Windows-International-Core" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-            <InputLocale>en-us</InputLocale>
-            <SystemLocale>en-us</SystemLocale>
-            <UILanguage>en-us</UILanguage>
-            <UserLocale>en-us</UserLocale>
-        </component>
-        <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-            <OOBE>
-                <!-- Setting EULA -->
-                <HideEULAPage>true</HideEULAPage>
-                <!-- Setting network location to public -->
-                <NetworkLocation>Other</NetworkLocation>
-                <!-- Hide Wirelss setup -->
-                <HideWirelessSetupInOOBE>true</HideWirelessSetupInOOBE>
-                <ProtectYourPC>3</ProtectYourPC>
-                <SkipMachineOOBE>true</SkipMachineOOBE>
-                <SkipUserOOBE>true</SkipUserOOBE>
-            </OOBE>
-            <!-- Setting timezone to GMT -->
-            <ShowWindowsLive>false</ShowWindowsLive>
-            <TimeZone>Greenwich Standard Time</TimeZone>
-            <!--Setting OEM information -->
-            <OEMInformation>
-                <Manufacturer>Google Cloud Platform</Manufacturer>
-                <Model>Google Compute Engine Virtual Machine</Model>
-                <SupportURL>https://support.google.com/enterprisehelp/answer/142244?hl=en#cloud</SupportURL>
-                <Logo>C:\Program Files\Google Compute Engine\sysprep\gcp.bmp</Logo>
-            </OEMInformation>
-        </component>
-    </settings>
-</unattend>
-'@
-
-  Out-File -FilePath $AnswerFilePath -InputObject $UnattendXML -Encoding utf8 -Force
-}
-
 function Enable-OSPartition-Resize {
     Param (
         [string]$AnswerFilePath
@@ -446,7 +231,7 @@ function Set-ProtectYourPC() {
     }
 
     Write-Log "Setting ProtectYourPC to $ProtectYourPC in the Answer File"
-    
+
     $content = [xml](Get-Content $AnswerFilePath)
     $mswShellSetup =  (($content.unattend.settings|where {$_.pass -eq 'oobeSystem'}).component|where {$_.name -eq "Microsoft-Windows-Shell-Setup"})
 
@@ -454,13 +239,46 @@ function Set-ProtectYourPC() {
         Throw "Could not locate oobeSystem XML block. You may not be running this function on an answer file."
     }
 
-    $protectYourPCBlock = $mswShellSetup.OOBE.ProtectYourPC
-    
-    If ($protectYourPCBlock.Count -eq 0) {
+    $oobeBlock = $mswShellSetup.OOBE
+
+    If ($oobeBlock.ProtectYourPC.Count -eq 0) {
         Throw "Could not locate ProtectYourPC XML block. You may not be running this function on an answer file."
     }
 
-    
+    $protectYourPCBlock = $content.CreateElement("ProtectYourPC", $content.DocumentElement.NamespaceURI)
+    $protectYourPCBlock.InnerText = "$ProtectYourPC"
+
+    $oobeBlock.ReplaceChild($protectyourPCBlock, $oobeBlock.SelectSingleNode("//ProtectYourPC"))
+
+    $content.Save($AnswerFilePath)
+}
+
+function Set-EnableOSPartitionProcessorArchitecture() {
+    Param (
+        [string]$AnswerFilePath = $(Throw "Answer file must be specified."),
+        [string]$ProcessorArchitecture = $(Throw "Please provide a ProcessorArchitecture. Valid values include 'x86', 'x64', and 'amd64'.")
+    )
+
+    If (($ProcessorArchitecture -ne 'x86') -and ($ProcessorArchitecture -ne 'x64') -and ($ProcessorArchitecture -ne 'amd64')) {
+        Throw "Invalid value. Valid values for ProcessorArchitecture include 'x86', 'x64', and 'amd64'."
+    }
+
+    If (!$(Test-Path $AnswerFilePath)) {
+        Throw "Answer file $AnswerFilePath does not exist"
+    }
+
+    Write-Log "Setting processorArchitecture attribute to $ProcessorArchitecture for 'Microsoft-Windows-Deployment' in the Answer File"
+
+    $content = [xml](Get-Content $AnswerFilePath)
+
+    $deploymentComponent = (($content.unattend.settings|where {$_.pass -eq 'specialize'}).component|where {$_.name -eq "Microsoft-Windows-Deployment"})
+    If ($deploymentComponent.Count -eq 0) {
+        Throw "Answer file does not contain a 'Microsoft-Windows-Deployment' specialize block."
+    }
+
+    $deploymentComponent.SetAttribute("processorArchitecture", $ProcessorArchitecture)
+
+    $content.Save($AnswerFilePath)
 }
 
 <#
@@ -538,14 +356,10 @@ function Invoke-Sysprep() {
         }
         "gcp" {
             $AnswerFilePath = "C:\Program Files\Google\Compute Engine\sysprep\unattended.xml"
-            Check-Default-GCP-Unattend $AnswerFilePath
             Set-ProtectYourPC $AnswerFilePath 3
             switch ($OsVersion) {
-                "windows2012R2" {
-                    Create-Unattend-GCP-1200 $AnswerFilePath
-                }
                 "windows2016" {
-                    Create-Unattend-GCP-1709 $AnswerFilePath
+                    Set-EnableOSPartitionProcessorArchitecture $AnswerFilePath "x64"
                 }
             }
             # Exec sysprep and shutdown

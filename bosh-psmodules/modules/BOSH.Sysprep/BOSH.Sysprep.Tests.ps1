@@ -358,12 +358,6 @@ Describe "Set-ProtectYourPC" {
         }
     }
 
-    #Context "when provided a correct answer file but no ProtectYourPC value" {
-     #   It "succeeds by using the default ProtectYourPC value" {
-            
-      #  }
-    #}
-
     Context "when provided a ProtectYourPC value below the acceptable range of values" {
         It "throws" {
             { Set-ProtectYourPC -AnswerFilePath "foo.xml" -ProtectYourPC 0 } | Should Throw "Invalid value: ProtectYourPC should be an integer from 1 to 3, inclusive"
@@ -441,10 +435,160 @@ Describe "Set-ProtectYourPC" {
         }
 
         It "sets the ProtectYourPC value to the default" {
-            Set-ProtectYourPC -AnswerFilePath $GoodAnswerFilePath  
+            Set-ProtectYourPC -AnswerFilePath $GoodAnswerFilePath
             $content = [xml](Get-Content $GoodAnswerFilePath)
             $protectYourPCBlock = (($content.unattend.settings|where {$_.pass -eq 'oobeSystem'}).component|where {$_.name -eq "Microsoft-Windows-Shell-Setup"}).OOBE.ProtectYourPC
-            $protectYourPCBlock.Value | Should be "1"
+            $protectYourPCBlock | Should be "1"
+        }
+    }
+
+    Context "when provided a valid XML answer file containing an 'oobeSystem' block which contains a 'Microsoft-Windows-Shell-Setup' block which contains a 'ProtectYourPC' block and no specified ProtectYourPC value" {
+        BeforeEach {
+            $GoodAnswerDirectory = (New-TempDir)
+            $GoodAnswerFilePath = Join-Path $GoodAnswerDirectory "validanswer.xml"
+
+            "<unattend>
+                <settings pass=`"oobeSystem`">
+                    <component name=`"Microsoft-Windows-Shell-Setup`">
+                        <OOBE>
+                            <ProtectYourPC>3</ProtectYourPC>
+                        </OOBE>
+                    </component>
+                </settings>
+            </unattend>" | Out-File $GoodAnswerFilePath
+        }
+
+        AfterEach {
+            Remove-Item -Recurse -Force $GoodAnswerDirectory
+        }
+
+        It "sets the ProtectYourPC value to the default" {
+            Set-ProtectYourPC -AnswerFilePath $GoodAnswerFilePath -ProtectYourPC 2
+            $content = [xml](Get-Content $GoodAnswerFilePath)
+            $protectYourPCBlock = (($content.unattend.settings|where {$_.pass -eq 'oobeSystem'}).component|where {$_.name -eq "Microsoft-Windows-Shell-Setup"}).OOBE.ProtectYourPC
+            $protectYourPCBlock | Should be "2"
+        }
+    }
+}
+
+Describe "Set-EnableOSPartitionProcessorArchitecture" {
+    Context "when no answer file path is provided" {
+        It "throws" {
+            { Set-EnableOSPartitionProcessorArchitecture } | Should Throw "Answer file must be specified."
+        }
+    }
+
+    Context "when provided a nonexistent answer file" {
+        It "throws" {
+            { Set-EnableOSPartitionProcessorArchitecture -AnswerFilePath "C:\IDoNotExist.xml" -ProcessorArchitecture "amd64" } | Should Throw "Answer file C:\IDoNotExist.xml does not exist"
+        }
+    }
+
+    Context "when provided an answer file with invalid XML" {
+        BeforeEach {
+            $BadAnswerXmlDirectory = (New-TempDir)
+            $BadAnswerXmlPath = Join-Path $BadAnswerXmlDirectory "bad.xml"
+
+            "bad xml" | Out-File $BadAnswerXmlPath
+        }
+
+        AfterEach {
+            Remove-Item -Recurse -Force $BadAnswerXmlDirectory
+        }
+
+        It "throws" {
+            { Set-EnableOSPartitionProcessorArchitecture -AnswerFilePath $BadAnswerXmlPath -ProcessorArchitecture "x86" } | Should Throw "Cannot convert value `"bad xml`" to type `"System.Xml.XmlDocument`". Error: `"The specified node cannot be inserted as the valid child of this node, because the specified node is the wrong type.`""
+        }
+    }
+
+    Context "when no processor architecture has been provided" {
+        It "throws" {
+            { Set-EnableOSPartitionProcessorArchitecture -AnswerFilePath $BadAnswerXmlPath } | Should Throw "Please provide a ProcessorArchitecture. Valid values include 'x86', 'x64', and 'amd64'."
+        }
+    }
+
+    Context "when an unsupported architecture has been provided" {
+        It "throws" {
+            {Set-EnableOSPartitionProcessorArchitecture -AnswerFilePath "C:\IDoNotExist.xml" -ProcessorArchitecture "foo" } | Should Throw "Invalid value. Valid values for ProcessorArchitecture include 'x86', 'x64', and 'amd64'."
+        }
+    }
+
+
+    Context "when provided an answer file containing XML but without a 'specialize block' containing 'Microsoft-Windows-Deployment'" {
+        BeforeEach {
+            $BadAnswerXmlDirectory = (New-TempDir)
+            $BadAnswerXmlPath = Join-Path $BadAnswerXmlDirectory "invalidanswer.xml"
+
+            "<?xml version=`"1.0`"?> `
+<catalog> `
+   <book id=`"bk101`"> `
+      <author>Gambardella, Matthew</author> `
+      <title>XML Developer's Guide</title> `
+      <genre>Computer</genre> `
+      <price>44.95</price> `
+      <publish_date>2000-10-01</publish_date> `
+      <description>An in-depth look at creating applications  `
+      with XML.</description> `
+   </book> `
+</catalog>" | Out-File $BadAnswerXmlPath
+        }
+
+        AfterEach {
+            Remove-Item -Recurse -Force $BadAnswerXmlDirectory
+        }
+
+        It "throws" {
+            { Set-EnableOSPartitionProcessorArchitecture -AnswerFilePath $BadAnswerXmlPath -ProcessorArchitecture "x64" } | Should Throw "Answer file does not contain a 'Microsoft-Windows-Deployment' specialize block."
+        }
+    }
+
+    Context "when there is no attribute for ProcessorArchitecture in the original XML" {
+        BeforeEach {
+            $GoodAnswerFileDirectory = (New-TempDir)
+            $GoodAnswerFilePath = Join-Path $GoodAnswerFileDirectory "validanswer.xml"
+
+            "<unattend>
+                <settings pass=`"specialize`">
+                    <component name=`"Microsoft-Windows-Deployment`" publicKeyToken=`"31bf3856ad364e35`" language=`"neutral`" versionScope=`"nonSxS`" xmlns:wcm=`"http://schemas.microsoft.com/WMIConfig/2002/State`" xmlns:xsi=`"http://www.w3.org/2001/XMLSchema-instance`">
+                    </component>
+                </settings>
+            </unattend>" | Out-File $GoodAnswerFilePath
+        }
+
+        AfterEach {
+            Remove-Item -Recurse -Force $GoodAnswerFileDirectory
+        }
+
+        It "adds an attribute with the specified value" {
+            Set-EnableOSPartitionProcessorArchitecture -AnswerFilePath $GoodAnswerFilePath -ProcessorArchitecture "x64"
+            $content = [xml](Get-Content $GoodAnswerFilePath)
+            $mwdBlock = ((($content.unattend.settings|where {$_.pass -eq 'specialize'}).component|where {$_.name -eq "Microsoft-Windows-Deployment"}))
+            $mwdBlock.GetAttribute("processorArchitecture") | Should Be "x64"
+        }
+    }
+
+    Context "when there is an attribute for ProcessorArchitecture in the original XML" {
+        BeforeEach {
+            $GoodAnswerFileDirectory = (New-TempDir)
+            $GoodAnswerFilePath = Join-Path $GoodAnswerFileDirectory "validanswer.xml"
+
+            "<unattend>
+                <settings pass=`"specialize`">
+                    <component name=`"Microsoft-Windows-Deployment`" processorArchitecture=`"x86`" publicKeyToken=`"31bf3856ad364e35`" language=`"neutral`" versionScope=`"nonSxS`" xmlns:wcm=`"http://schemas.microsoft.com/WMIConfig/2002/State`" xmlns:xsi=`"http://www.w3.org/2001/XMLSchema-instance`">
+                    </component>
+                </settings>
+            </unattend>" | Out-File $GoodAnswerFilePath
+        }
+
+        AfterEach {
+            Remove-Item -Recurse -Force $GoodAnswerFileDirectory
+        }
+
+        It "sets the attribute to the specified value" {
+            Set-EnableOSPartitionProcessorArchitecture -AnswerFilePath $GoodAnswerFilePath -ProcessorArchitecture "amd64"
+            $content = [xml](Get-Content $GoodAnswerFilePath)
+            $mwdBlock = ((($content.unattend.settings|where {$_.pass -eq 'specialize'}).component|where {$_.name -eq "Microsoft-Windows-Deployment"}))
+            $mwdBlock.GetAttribute("processorArchitecture") | Should Be "amd64"
         }
     }
 }
