@@ -362,15 +362,15 @@ function Invoke-Sysprep() {
         }
         "gcp" {
             $AnswerFilePath = "C:\Program Files\Google\Compute Engine\sysprep\unattended.xml"
-            Write-Log "Before Set-ProtectYourPC"
-            Write-Log (Get-Content $AnswerFilePath)
-            Set-ProtectYourPC $AnswerFilePath 3
-            Write-Log "After Set-ProtectYourPC"
-            Write-Log (Get-Content $AnswerFilePath)
+            # Write-Log "Before Set-ProtectYourPC"
+            # Write-Log (Get-Content "$AnswerFilePath")
+            # Set-ProtectYourPC "$AnswerFilePath" 3
+            # Write-Log "After Set-ProtectYourPC"
             Write-Log "Before Set-EnableOSPartitionProcessorArchitecture"
-            Set-EnableOSPartitionProcessorArchitecture $AnswerFilePath "x64"
+            Write-Log (Get-Content "$AnswerFilePath")
+            Set-EnableOSPartitionProcessorArchitecture "$AnswerFilePath" "x64"
             Write-Log "After Set-EnableOSPartitionProcessorArchitecture"
-            Write-Log (Get-Content $AnswerFilePath)
+            Write-Log (Get-Content "$AnswerFilePath")
             # Exec sysprep and shutdown
             GCESysprep
         }
