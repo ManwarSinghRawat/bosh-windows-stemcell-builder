@@ -357,11 +357,7 @@ function Invoke-Sysprep() {
         "gcp" {
             $AnswerFilePath = "C:\Program Files\Google\Compute Engine\sysprep\unattended.xml"
             Set-ProtectYourPC $AnswerFilePath 3
-            switch ($OsVersion) {
-                "windows2016" {
-                    Set-EnableOSPartitionProcessorArchitecture $AnswerFilePath "x64"
-                }
-            }
+            Set-EnableOSPartitionProcessorArchitecture $AnswerFilePath "x64"
             # Exec sysprep and shutdown
             GCESysprep
         }
