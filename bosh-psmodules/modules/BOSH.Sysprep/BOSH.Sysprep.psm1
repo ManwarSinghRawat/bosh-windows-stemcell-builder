@@ -245,7 +245,12 @@ function Set-ProtectYourPC() {
         Throw "Could not locate ProtectYourPC XML block. You may not be running this function on an answer file."
     }
 
-    $oobeBlock.SelectSingleNode("//ProtectYourPC").Value = "$ProtectYourPC"
+    $protectYourPCBlock = $content.CreateElement("ProtectYourPC", $content.DocumentElement.NamespaceURI)
+    $protectYourPCBlock.InnerText = "$ProtectYourPC"
+
+    Write-Log "ProtectYourPC = $oobeBlock.SelectSingleNode("//ProtectYourPC")"
+
+    $oobeBlock.ReplaceChild($protectyourPCBlock, $oobeBlock.SelectSingleNode("//ProtectYourPC"))
 
     $content.Save($AnswerFilePath)
 }
