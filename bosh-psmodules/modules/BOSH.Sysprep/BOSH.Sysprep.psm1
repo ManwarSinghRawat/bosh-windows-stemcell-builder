@@ -245,10 +245,7 @@ function Set-ProtectYourPC() {
         Throw "Could not locate ProtectYourPC XML block. You may not be running this function on an answer file."
     }
 
-    $protectYourPCBlock = $content.CreateElement("ProtectYourPC", $content.DocumentElement.NamespaceURI)
-    $protectYourPCBlock.InnerText = "$ProtectYourPC"
-
-    $oobeBlock.ReplaceChild($protectyourPCBlock, $oobeBlock.SelectSingleNode("//ProtectYourPC"))
+    $oobeBlock.SelectSingleNode("//ProtectYourPC").InnerText = "$ProtectYourPC"
 
     $content.Save($AnswerFilePath)
 }
@@ -273,18 +270,11 @@ function Set-EnableOSPartitionProcessorArchitecture() {
 
     $deploymentComponent = (($content.unattend.settings|where {$_.pass -eq 'specialize'}).component|where {$_.name -eq "Microsoft-Windows-Deployment"})
     If ($deploymentComponent.Count -eq 0) {
-        Write-Log foooooo
         Throw "Answer file does not contain a 'Microsoft-Windows-Deployment' specialize block."
-        Write-Log baaaaar
     }
-    Write-Log blllllaaaaaaaaaaaa
     $deploymentComponent.SetAttribute("processorArchitecture", $ProcessorArchitecture)
-    Write-Log $deploymentComponent.GetAttribute("processorArchitecture")
-    Write-Log $AnswerFilePath
+
     $content.Save($AnswerFilePath)
-    $content2 = [xml](Get-Content $AnswerFilePath)
-    $deploymentComponent2 = (($content2.unattend.settings|where {$_.pass -eq 'specialize'}).component|where {$_.name -eq "Microsoft-Windows-Deployment"})
-    Write-Log $deploymentComponent2.GetAttribute("processorArchitecture")
 }
 
 <#
