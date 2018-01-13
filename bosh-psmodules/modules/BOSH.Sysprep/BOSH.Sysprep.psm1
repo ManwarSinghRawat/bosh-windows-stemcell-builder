@@ -248,7 +248,8 @@ function Set-ProtectYourPC() {
     $protectYourPCBlock = $content.CreateElement("ProtectYourPC", $content.DocumentElement.NamespaceURI)
     $protectYourPCBlock.InnerText = "$ProtectYourPC"
 
-    Write-Log "ProtectYourPC = $oobeBlock.SelectSingleNode("//ProtectYourPC")"
+    $existingProtectYourPCBlock = $oobeBlock.SelectSingleNode("//ProtectYourPC")
+    Write-Log "ProtectYourPC = $existingProtectYourPCBlock"
 
     $oobeBlock.ReplaceChild($protectyourPCBlock, $oobeBlock.SelectSingleNode("//ProtectYourPC"))
 
