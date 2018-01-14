@@ -243,10 +243,7 @@ function Set-ProtectYourPC() {
         Throw "Could not locate ProtectYourPC XML block. You may not be running this function on an answer file."
     }
 
-    $protectYourPCBlock = $content.CreateElement("ProtectYourPC", $content.DocumentElement.NamespaceURI)
-    $protectYourPCBlock.InnerText = "$ProtectYourPC"
-
-    $oobeBlock.ReplaceChild($protectYourPCBlock, $oobeBlock.SelectSingleNode("//ProtectYourPC"))
+    $oobeBlock.ProtectYourPC =  "$ProtectYourPC"
 
     $content.Save($AnswerFilePath)
 }
@@ -353,7 +350,9 @@ function Invoke-Sysprep() {
         }
         "gcp" {
             $AnswerFilePath = "C:\Program Files\Google\Compute Engine\sysprep\unattended.xml"
-            #Set-ProtectYourPC "$AnswerFilePath" 3
+            # Disable auto-update
+            Set-ProtectYourPC "$AnswerFilePath" 3
+            # Allow the resizing of disks by specifying a compatible architecture for GCP
             Set-EnableOSPartitionProcessorArchitecture "$AnswerFilePath" "x64"
             # Exec sysprep and shutdown
             GCESysprep
