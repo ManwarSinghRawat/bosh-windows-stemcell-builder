@@ -353,7 +353,7 @@ function Invoke-Sysprep() {
         }
         "gcp" {
             $AnswerFilePath = "C:\Program Files\Google\Compute Engine\sysprep\unattended.xml"
-            Set-ProtectYourPC "$AnswerFilePath" 3
+            #Set-ProtectYourPC "$AnswerFilePath" 3
             Set-EnableOSPartitionProcessorArchitecture "$AnswerFilePath" "x64"
             # Exec sysprep and shutdown
             GCESysprep
