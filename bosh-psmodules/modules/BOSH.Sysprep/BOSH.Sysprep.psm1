@@ -233,13 +233,11 @@ function Set-ProtectYourPC() {
     Write-Log "Setting ProtectYourPC to $ProtectYourPC in the Answer File"
 
     $content = [xml](Get-Content $AnswerFilePath)
-    $mswShellSetup =  (($content.unattend.settings|where {$_.pass -eq 'oobeSystem'}).component|where {$_.name -eq "Microsoft-Windows-Shell-Setup"})
+    $oobeBlock =  (($content.unattend.settings|where {$_.pass -eq 'oobeSystem'}).component|where {$_.name -eq "Microsoft-Windows-Shell-Setup"}).OOBE
 
-    If ($mswShellSetup -eq $Null) {
-        Throw "Could not locate oobeSystem XML block. You may not be running this function on an answer file."
+    If ($oobeBlock -eq $Null) {
+        Throw "Could not locate OOBE XML block. You may not be running this function on an answer file."
     }
-
-    $oobeBlock = $mswShellSetup.OOBE
 
     If ($oobeBlock.ProtectYourPC.Count -eq 0) {
         Throw "Could not locate ProtectYourPC XML block. You may not be running this function on an answer file."
@@ -248,10 +246,7 @@ function Set-ProtectYourPC() {
     $protectYourPCBlock = $content.CreateElement("ProtectYourPC", $content.DocumentElement.NamespaceURI)
     $protectYourPCBlock.InnerText = "$ProtectYourPC"
 
-    $existingProtectYourPCBlock = $oobeBlock.SelectSingleNode("//ProtectYourPC")
-    Write-Log "ProtectYourPC = $existingProtectYourPCBlock"
-
-    $oobeBlock.ReplaceChild($protectyourPCBlock, $oobeBlock.SelectSingleNode("//ProtectYourPC"))
+    $oobeBlock.ReplaceChild($protectYourPCBlock, $oobeBlock.SelectSingleNode("//ProtectYourPC"))
 
     $content.Save($AnswerFilePath)
 }

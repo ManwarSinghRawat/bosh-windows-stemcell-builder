@@ -388,7 +388,7 @@ Describe "Set-ProtectYourPC" {
         }
 
         It "throws" {
-            { Set-ProtectYourPC -AnswerFilePath $NoOOBEXmlPath } | Should Throw "Could not locate oobeSystem XML block. You may not be running this function on an answer file."
+            { Set-ProtectYourPC -AnswerFilePath $NoOOBEXmlPath } | Should Throw "Could not locate OOBE XML block. You may not be running this function on an answer file."
         }
     }
 
@@ -400,6 +400,7 @@ Describe "Set-ProtectYourPC" {
             "<unattend>
                 <settings pass=`"oobeSystem`">
                     <component name=`"Microsoft-Windows-Shell-Setup`">
+                        <OOBE></OOBE>
                     </component>
                 </settings>
             </unattend>" | Out-File $NoProtectYourPCFilePath
