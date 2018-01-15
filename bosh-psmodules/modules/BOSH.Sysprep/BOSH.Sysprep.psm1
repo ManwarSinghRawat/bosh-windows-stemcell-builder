@@ -353,7 +353,7 @@ function Invoke-Sysprep() {
             # Disable auto-update
             Set-ProtectYourPC "$AnswerFilePath" 3
             # Allow the resizing of disks by specifying a compatible architecture for GCP
-            Set-EnableOSPartitionProcessorArchitecture "$AnswerFilePath" "x64"
+            Set-EnableOSPartitionProcessorArchitecture "$AnswerFilePath" "amd64"
             # Exec sysprep and shutdown
             GCESysprep
         }
