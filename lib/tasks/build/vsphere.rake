@@ -19,9 +19,6 @@ namespace :build do
     FileUtils.rm_rf(output_directory)
 
     vmx = S3::Vmx.new(
-      aws_access_key_id: Stemcell::Builder::validate_env("AWS_ACCESS_KEY_ID"),
-      aws_secret_access_key: Stemcell::Builder::validate_env("AWS_SECRET_ACCESS_KEY"),
-      aws_region: Stemcell::Builder::validate_env("AWS_REGION"),
       input_bucket: Stemcell::Builder::validate_env("INPUT_BUCKET"),
       output_bucket: Stemcell::Builder::validate_env("OUTPUT_BUCKET"),
       vmx_cache_dir: Stemcell::Builder::validate_env("VMX_CACHE_DIR"),
@@ -55,21 +52,12 @@ namespace :build do
     output_directory = Stemcell::Builder::validate_env('OUTPUT_DIR') # packer-output must not exist before packer is run!
     signature_path = File.join(output_directory, 'signature')
 
-    aws_access_key_id = Stemcell::Builder::validate_env('AWS_ACCESS_KEY_ID')
-    aws_secret_access_key = Stemcell::Builder::validate_env('AWS_SECRET_ACCESS_KEY')
-    aws_region = Stemcell::Builder::validate_env('AWS_REGION')
-
     image_bucket = Stemcell::Builder::validate_env('VHD_VMDK_BUCKET')
     diff_output_bucket = Stemcell::Builder::validate_env('DIFF_OUTPUT_BUCKET')
     stemcell_output_bucket = Stemcell::Builder::validate_env('STEMCELL_OUTPUT_BUCKET')
     cache_dir = Stemcell::Builder::validate_env('CACHE_DIR')
 
-    s3_client = S3::Client.new(
-      aws_access_key_id: aws_access_key_id,
-      aws_secret_access_key: aws_secret_access_key,
-      aws_region: aws_region,
-      endpoint: ENV["S3_ENDPOINT"]
-    )
+    s3_client = S3::Client.new(endpoint: ENV["S3_ENDPOINT"])
 
     # Get the most recent vhd
     last_file = s3_client.list(image_bucket).select{|file| /.vhd$/.match(file)}.sort.last
@@ -152,10 +140,6 @@ namespace :build do
   task :vsphere do
     build_dir = File.expand_path("../../../../build", __FILE__)
 
-    aws_access_key_id = Stemcell::Builder::validate_env('AWS_ACCESS_KEY_ID')
-    aws_secret_access_key = Stemcell::Builder::validate_env('AWS_SECRET_ACCESS_KEY')
-    aws_region = Stemcell::Builder::validate_env('AWS_REGION')
-
     version_dir = Stemcell::Builder::validate_env_dir('VERSION_DIR')
     vmx_version_dir = Stemcell::Builder::validate_env_dir('VMX_VERSION_DIR')
 
@@ -170,9 +154,6 @@ namespace :build do
 
 
     vmx = S3::Vmx.new(
-      aws_access_key_id: aws_access_key_id,
-      aws_secret_access_key: aws_secret_access_key,
-      aws_region: aws_region,
       input_bucket: Stemcell::Builder::validate_env('INPUT_BUCKET'),
       output_bucket: Stemcell::Builder::validate_env('OUTPUT_BUCKET'),
       vmx_cache_dir: Stemcell::Builder::validate_env('VMX_CACHE_DIR'),
@@ -207,12 +188,7 @@ namespace :build do
     )
 
     vsphere.build
-    s3_client = S3::Client.new(
-      aws_access_key_id: aws_access_key_id,
-      aws_secret_access_key: aws_secret_access_key,
-      aws_region: aws_region,
-      endpoint: ENV["S3_ENDPOINT"]
-    )
+    s3_client = S3::Client.new(endpoint: ENV["S3_ENDPOINT"])
 
     pattern = File.join(output_directory, "*.tgz").gsub('\\', '/')
     stemcell = Dir.glob(pattern)[0]

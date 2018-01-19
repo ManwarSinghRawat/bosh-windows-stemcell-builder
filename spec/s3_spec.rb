@@ -18,12 +18,7 @@ describe S3 do
       allow(Aws::S3::Client).to receive(:new).and_return(s3)
       allow(File).to receive(:open) # WARN
 
-      @s3_client = S3::Client.new(
-        aws_access_key_id: 'some-key-id',
-        aws_secret_access_key: 'some-secret-access-key',
-        aws_region: 'some-region',
-        endpoint: ''
-      )
+      @s3_client = S3::Client.new(endpoint: '')
     end
     describe '#list' do
       context 'when bucket contains slashes' do
