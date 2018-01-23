@@ -78,11 +78,7 @@ describe 'Aws' do
     it 'should build an aws stemcell' do
       s3_client = double(:s3_client)
       allow(s3_client).to receive(:put)
-      allow(S3::Client).to receive(:new).with(
-        aws_access_key_id: @aws_access_key,
-        aws_secret_access_key: @aws_secret_key,
-        aws_region: @output_bucket_region
-      ).and_return(s3_client)
+      allow(S3::Client).to receive(:new).and_return(s3_client)
 
       Rake::Task['build:aws'].invoke
 
@@ -111,6 +107,19 @@ describe 'Aws' do
       expect(packer_output_ami['region']).to eq('us-east-1')
       expect(packer_output_ami['ami_id']).to eq('ami-east1id')
     end
+
+    context 'when we are not authorized to write to the bucket' do
+      before(:each) do
+        stub_request(:put, 'https://s3.us-east-2.amazonaws.com/some-output-bucket-name/test-upload-permissions').
+          to_return(status: 403, body: '', headers: {})
+      end
+
+      it 'should fail before attempting to build stemcell' do
+        expect do
+          Rake::Task['build:aws'].invoke
+        end.to raise_exception(Aws::S3::Errors::Forbidden)
+      end
+    end
   end
 
   describe 'Copy an aws stemcell' do
@@ -130,11 +139,7 @@ describe 'Aws' do
 
       s3_client = double(:s3_client)
       allow(s3_client).to receive(:put)
-      allow(S3::Client).to receive(:new).with(
-          aws_access_key_id: @aws_access_key,
-          aws_secret_access_key: @aws_secret_key,
-          aws_region: @output_bucket_region
-      ).and_return(s3_client)
+      allow(S3::Client).to receive(:new).and_return(s3_client)
 
       allow(Executor).to receive(:exec_command).
           with('aws ec2 describe-images --image-ids ami-east1id --region us-east-1').

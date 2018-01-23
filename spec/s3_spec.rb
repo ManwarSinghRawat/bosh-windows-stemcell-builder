@@ -96,9 +96,7 @@ describe S3 do
       s3_client= double(:s3_client)
       allow(S3::Client).to receive(:new)
         .with(
-          aws_access_key_id: aws_access_key_id,
-          aws_secret_access_key: aws_secret_access_key,
-          aws_region: aws_region,
+
           endpoint: '').and_return(s3_client)
 
       vmx_version = "vmx-v2.tgz"
@@ -109,9 +107,6 @@ describe S3 do
       end
 
       file = S3::Vmx.new(
-        aws_access_key_id: aws_access_key_id,
-        aws_secret_access_key: aws_secret_access_key,
-        aws_region: aws_region,
         input_bucket: input_bucket,
         output_bucket: output_bucket,
         vmx_cache_dir: vmx_cache_dir

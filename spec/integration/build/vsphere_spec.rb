@@ -55,9 +55,6 @@ describe 'VSphere' do
     allow(s3_vmx).to receive(:put)
 
     allow(S3::Vmx).to receive(:new).with(
-      aws_access_key_id: 'some-key',
-      aws_secret_access_key: 'secret-key',
-      aws_region: 'some-region',
       input_bucket: 'input-vmx-bucket',
       output_bucket: 'stemcell-output-bucket',
       vmx_cache_dir: '/tmp',
@@ -126,9 +123,6 @@ describe 'VSphere' do
       allow(s3_vmx).to receive(:put)
 
       allow(S3::Vmx).to receive(:new).with(
-        aws_access_key_id: 'some-key',
-        aws_secret_access_key: 'secret-key',
-        aws_region: 'some-region',
         input_bucket: 'input-vmx-bucket',
         output_bucket: 'stemcell-output-bucket',
         vmx_cache_dir: '/tmp',
@@ -139,9 +133,6 @@ describe 'VSphere' do
       allow(s3_client).to receive(:put)
 
       allow(S3::Client).to receive(:new).with(
-        aws_access_key_id: 'some-key',
-        aws_secret_access_key: 'secret-key',
-        aws_region: 'some-region',
         endpoint: nil
       ).and_return(s3_client)
 
@@ -204,9 +195,6 @@ describe 'VSphere' do
     allow(s3_vmx).to receive(:put)
 
     allow(S3::Vmx).to receive(:new).with(
-      aws_access_key_id: 'some-key',
-      aws_secret_access_key: 'secret-key',
-      aws_region: 'some-region',
       input_bucket: 'input-vmx-bucket',
       output_bucket: 'stemcell-output-bucket',
       vmx_cache_dir: '/tmp',
@@ -217,9 +205,6 @@ describe 'VSphere' do
     allow(s3_client).to receive(:put)
 
     allow(S3::Client).to receive(:new).with(
-      aws_access_key_id: 'some-key',
-      aws_secret_access_key: 'secret-key',
-      aws_region: 'some-region',
       endpoint: nil
     ).and_return(s3_client)
 
