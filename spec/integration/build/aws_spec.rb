@@ -142,18 +142,18 @@ describe 'Aws' do
       allow(S3::Client).to receive(:new).and_return(s3_client)
 
       allow(Executor).to receive(:exec_command).
-          with('aws ec2 describe-images --image-ids ami-east1id --region us-east-1').
-          and_return({'Images' => [{'Name' => 'some-image-name-us-east-1'}]}.to_json)
+        with('aws ec2 describe-images --image-ids ami-east1id --region us-east-1').
+        and_return({'Images' => [{'Name' => 'some-image-name-us-east-1'}]}.to_json)
 
       allow(Executor).to receive(:exec_command).
-          with('aws ec2 copy-image --source-image-id ami-east1id ' \
+        with('aws ec2 copy-image --source-image-id ami-east1id ' \
              '--source-region us-east-1 --region us-east-2 --name some-image-name-us-east-2').
-          and_return({'ImageId' => 'ami-east2id'}.to_json)
+             and_return({'ImageId' => 'ami-east2id'}.to_json)
 
       allow(Executor).to receive(:exec_command).
-          with('aws ec2 modify-image-attribute --image-id ami-east2id ' \
-          '--launch-permission \'{"Add":[{"Group":"all"}]}\' --region us-east-2').
-          and_return(nil)
+        with('aws ec2 modify-image-attribute --image-id ami-east2id ' \
+             '--launch-permission \'{"Add":[{"Group":"all"}]}\' --region us-east-2').
+      and_return(nil)
 
     end
 
@@ -166,12 +166,12 @@ describe 'Aws' do
     it 'should copy an aws stemcell' do
 
       allow(Executor).to receive(:exec_command).with('aws ec2 describe-images --image-ids ami-east2id ' \
-          '--region us-east-2 --filters Name=state,Values=available,failed').
-          and_return({'Images' =>[ {'ImageId'=> 'ami-east2id', 'State' => 'available' }]}.to_json)
+                                                     '--region us-east-2 --filters Name=state,Values=available,failed').
+                                                     and_return({'Images' =>[ {'ImageId'=> 'ami-east2id', 'State' => 'available' }]}.to_json)
 
       expect(Executor).to receive(:exec_command).
-          with('aws ec2 modify-image-attribute --image-id ami-east2id ' \
-          '--launch-permission \'{"Add":[{"Group":"all"}]}\' --region us-east-2')
+        with('aws ec2 modify-image-attribute --image-id ami-east2id ' \
+             '--launch-permission \'{"Add":[{"Group":"all"}]}\' --region us-east-2')
 
       Rake::Task['build:aws_ami'].reenable
       Rake::Task['build:aws_ami'].invoke
@@ -198,12 +198,12 @@ describe 'Aws' do
 
     it 'should error out if aws stemcell copy fails' do
       allow(Executor).to receive(:exec_command).with('aws ec2 describe-images --image-ids ami-east2id ' \
-        '--region us-east-2 --filters Name=state,Values=available,failed').
-        and_return({'Images' =>[ {'ImageId'=> 'ami-east2id', 'State' => 'failed' }]}.to_json)
+                                                     '--region us-east-2 --filters Name=state,Values=available,failed').
+                                                     and_return({'Images' =>[ {'ImageId'=> 'ami-east2id', 'State' => 'failed' }]}.to_json)
 
       expect(Executor).not_to receive(:exec_command).
         with('aws ec2 modify-image-attribute --image-id ami-east2id ' \
-        '--launch-permission \'{"Add":[{"Group":"all"}]}\' --region us-east-2')
+             '--launch-permission \'{"Add":[{"Group":"all"}]}\' --region us-east-2')
 
       expect do
         Rake::Task['build:aws_ami'].reenable
@@ -213,17 +213,17 @@ describe 'Aws' do
 
     it 'should wait to make aws stemcell public if copy still pending' do
       allow(Executor).to receive(:exec_command).with('aws ec2 describe-images --image-ids ami-east2id ' \
-          '--region us-east-2 --filters Name=state,Values=available,failed').
-          and_return({'Images' =>[]}.to_json,
-            {'Images' =>[]}.to_json,
-            {'Images' =>[ {'ImageId'=> 'ami-east2id', 'State' => 'available' }]}.to_json)
+                                                     '--region us-east-2 --filters Name=state,Values=available,failed').
+                                                     and_return({'Images' =>[]}.to_json,
+                                                                {'Images' =>[]}.to_json,
+                                                                {'Images' =>[ {'ImageId'=> 'ami-east2id', 'State' => 'available' }]}.to_json)
 
       expect(Executor).to receive(:exec_command).with('aws ec2 describe-images --image-ids ami-east2id ' \
-          '--region us-east-2 --filters Name=state,Values=available,failed').exactly(3).times
+                                                      '--region us-east-2 --filters Name=state,Values=available,failed').exactly(3).times
 
       expect(Executor).to receive(:exec_command).
-          with('aws ec2 modify-image-attribute --image-id ami-east2id ' \
-          '--launch-permission \'{"Add":[{"Group":"all"}]}\' --region us-east-2').once
+        with('aws ec2 modify-image-attribute --image-id ami-east2id ' \
+             '--launch-permission \'{"Add":[{"Group":"all"}]}\' --region us-east-2').once
 
       Rake::Task['build:aws_ami'].reenable
       Rake::Task['build:aws_ami'].invoke
@@ -231,3 +231,4 @@ describe 'Aws' do
 
   end
 end
+
