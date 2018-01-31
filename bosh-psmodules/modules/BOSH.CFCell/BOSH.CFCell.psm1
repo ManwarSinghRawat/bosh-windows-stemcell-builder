@@ -147,6 +147,12 @@ function set-firewall {
 	check-firewall "private"
 	check-firewall "domain"
   Write-Log "Finished setting firewall rules"
+
+  $MetadataServerAllowRules = Get-NetFirewallRule -Enabled True -Direction Outbound | Get-NetFirewallAddressFilter | Where-Object -FilterScript { $_.RemoteAddress -Eq '169.254.169.254' }
+  If ($MetadataServerAllowRules.Count > 0) {
+    Write-Log "Removing firewall rule that allows access to metadata server"
+    $MetadataServerAllowRules | Remove-NetFirewallRule
+  }
 }
 
 function get-firewall {
