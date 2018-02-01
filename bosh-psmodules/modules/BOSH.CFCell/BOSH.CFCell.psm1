@@ -152,6 +152,20 @@ function set-firewall {
   If ($MetadataServerAllowRules -Ne $null) {
     Write-Log "Removing firewall rule that allows access to metadata server"
     $MetadataServerAllowRules | Remove-NetFirewallRule
+    New-NetFirewallRule `
+      -Name "Allow-GCEAgent-Metadata-Server" `
+      -DisplayName "Allow GCEAgent to reach the GCP metadata server" `
+      -Direction Outbound `
+      -Action Allow `
+      -RemoteAddress "169.254.169.254" `
+      -Service "GCEAgent"
+    New-NetFirewallRule `
+      -Name "Allow-BOSH-Agent-Metadata-Server" `
+      -DisplayName "Allow BOSH Agent to reach the GCP metadata server" `
+      -Direction Outbound `
+      -Action Allow `
+      -RemoteAddress "169.254.169.254" `
+      -Service "bosh-agent"
   }
 }
 
