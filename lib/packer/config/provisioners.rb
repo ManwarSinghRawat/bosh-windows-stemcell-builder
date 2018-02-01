@@ -45,7 +45,7 @@ module Packer
       }
       INSTALL_TEMP_PATCH  = {
         'type' => 'windows-restart',
-        'restart_command' => "powershell.exe -Command bcdedit -set testsigning on; set-date 'Wednesday, January 10, 2018 8:50:10 PM'; C:\\provision\\private-patch1.exe /q ; start-sleep 300; restart-computer",
+        'restart_command' => "powershell.exe -Command bcdedit -set testsigning on; Stop-Service W32Time; set-date 'Wednesday, January 10, 2018 8:50:10 PM'; C:\\provision\\private-patch1.exe /q ; start-sleep 300; Start-Service W32Time; restart-computer",
         'restart_timeout' => '1h'
       }
       WAIT_AND_RESTART = {
