@@ -120,6 +120,24 @@ describe Stemcell::Builder do
   end
 
   describe 'VSphere' do
+    describe '.write_patchfile_manifest' do
+      it 'generates a patchfile manifest' do
+        version = 'some-version'
+        vhd_filename = 'some-vhd-filename'
+        stemcell_filename = 'some-stemcell-filename'
+        patch_filename = 'some-patch-filename'
+
+        expectedManifest = <<~HEREDOC
+          ---
+          version: 'some-version'
+          vhd_file_name: 'some-vhd-filename'
+          patch_file: ''
+          vhd_checksum: ''
+          patch_file_checksum: ''
+          stemcell_checksum: ''
+        HEREDOC
+      end
+    end
     describe 'build' do
       it 'builds a stemcell tarball' do
         source_path = 'source-path'
