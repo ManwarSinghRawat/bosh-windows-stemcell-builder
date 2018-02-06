@@ -59,6 +59,28 @@ module Stemcell
     end
 
     class VSphere < VSphereBase
+      def self.write_patchfile_manifest(version:, vhd_filepath:, stemcell_filepath:, patch_file_url:, patch_filepath:, output_directory:)
+        manifest_filepath = File.join(output_directory, 'manifest')
+
+        vhd_filename = File.basename(vhd_filepath)
+
+        manifest_content = <<~HEREDOC
+            ---
+            version: #{version}
+            vhd_file_name: #{vhd_filename}
+            patch_file: #{patch_file_url}
+            vhd_checksum: #{Digest::SHA2.new(256).file(vhd_filepath).hexdigest}
+            patch_file_checksum: #{Digest::SHA2.new(256).file(patch_filepath).hexdigest}
+            stemcell_checksum: #{Digest::SHA2.new(256).file(stemcell_filepath).hexdigest}
+          HEREDOC
+
+        File.open(manifest_filepath, 'w') do |file|
+          file.write(manifest_content)
+        end
+        
+        return manifest_filepath
+      end
+
       def initialize(product_key:, owner:, organization:, new_password:, skip_windows_update:false,**args)
         @product_key = product_key
         @owner = owner

@@ -122,20 +122,32 @@ describe Stemcell::Builder do
   describe 'VSphere' do
     describe '.write_patchfile_manifest' do
       it 'generates a patchfile manifest' do
-        version = 'some-version'
-        vhd_filename = 'some-vhd-filename'
-        stemcell_filename = 'some-stemcell-filename'
-        patch_filename = 'some-patch-filename'
+        allow(ENV).to receive(:[]).with('DESTINATION_DIR').and_return('some-azure-url')
 
-        expectedManifest = <<~HEREDOC
+        version = 'some-version'
+        vhd_filename = 'fake.vhd'
+        vhd_filepath = File.join('spec', 'fixtures', 'vsphere', vhd_filename)
+        stemcell_filepath = File.join('spec', 'fixtures', 'vsphere', 'fake-stemcell.tgz')
+        patch_filepath = File.join('spec', 'fixtures', 'vsphere', 'patchfile')
+        patch_file_url = 'some-patch-url'
+
+        manifest_filepath = Stemcell::Builder::VSphere.write_patchfile_manifest(version: version, vhd_filepath: vhd_filepath,
+                                                            stemcell_filepath: stemcell_filepath,
+                                                            patch_file_url: patch_file_url,
+                                                            patch_filepath: patch_filepath,
+                                                            output_directory: output_directory)
+
+        expected_manifest = <<~HEREDOC
           ---
-          version: 'some-version'
-          vhd_file_name: 'some-vhd-filename'
-          patch_file: ''
-          vhd_checksum: ''
-          patch_file_checksum: ''
-          stemcell_checksum: ''
+          version: #{version}
+          vhd_file_name: #{vhd_filename}
+          patch_file: #{patch_file_url}
+          vhd_checksum: #{Digest::SHA2.new(256).file(vhd_filepath).hexdigest}
+          patch_file_checksum: #{Digest::SHA2.new(256).file(patch_filepath).hexdigest}
+          stemcell_checksum: #{Digest::SHA2.new(256).file(stemcell_filepath).hexdigest}
         HEREDOC
+
+        expect(File.read(manifest_filepath)).to eq(expected_manifest)
       end
     end
     describe 'build' do

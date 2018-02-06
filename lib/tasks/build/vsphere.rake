@@ -141,6 +141,14 @@ namespace :build do
 
     upload_keyname = stemcell_filename.gsub('vsphere-esxi', 'diff-vsphere-esxi')
     s3_client.put(stemcell_output_bucket, upload_keyname, stemcell_path)
+
+    # Generate patchfile manifest
+    patch_file_url = 'some-url'
+    args = {
+      version: version, vhd_filepath: vhd_path, stemcell_filepath: stemcell_path,
+      patch_file_url: patch_file_url, patch_filepath: diff_path, output_directory: output_directory
+    }
+    Stemcell::Builder::VSphere.write_patchfile_manifest(args)
   end
 
   desc 'Build VSphere Stemcell'
