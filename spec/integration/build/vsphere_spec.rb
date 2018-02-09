@@ -100,7 +100,7 @@ describe 'VSphere' do
       File.write("../ci/bosh-windows-stemcell-builder/create-vsphere-stemcell-from-diff/old-base-vmx.vmx", "some-vmx-template")
 
       os_version = 'windows2012R2'
-      version = '1200.3.1-build.2'
+      @version = '1200.3.1-build.2'
       agent_commit = 'some-agent-commit'
 
       ENV['AWS_ACCESS_KEY_ID']= 'some-key'
@@ -132,7 +132,7 @@ describe 'VSphere' do
 
       File.write(
         File.join(@version_dir, 'number'),
-        version
+        @version
       )
       File.write(
         File.join(@vmx_version_dir, 'number'),
@@ -152,16 +152,19 @@ describe 'VSphere' do
 
       allow(S3).to receive(:test_upload_permissions)
 
+      @vhd_version = '0-0'
+      @vhd_filename = "some-last-file.patched-#{@vhd_version}.vhd"
       s3_client= double(:s3_client)
       allow(s3_client).to receive(:put)
-      allow(s3_client).to receive(:list).and_return(['some-last-file.patched-0-0.vhd'])
+      allow(s3_client).to receive(:list).and_return([@vhd_filename])
       allow(s3_client).to receive(:get)
 
       allow(S3::Client).to receive(:new).with(
         endpoint: nil
       ).and_return(s3_client)
 
-      allow(Stemcell::Builder::VSphere).to receive(:find_file_by_extn).and_return('some-stemcell-path.tgz')
+      @fake_stemcell_path = 'some-stemcell-path.tgz'
+      allow(Stemcell::Builder::VSphere).to receive(:find_file_by_extn).and_return(@fake_stemcell_path)
     end
 
     after(:each) do
