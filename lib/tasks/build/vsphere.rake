@@ -60,7 +60,7 @@ namespace :build do
     signature_path = File.join(output_directory, 'signature')
 
     image_bucket = Stemcell::Builder::validate_env('VHD_VMDK_BUCKET')
-    diff_output_bucket = Stemcell::Builder::validate_env('DIFF_OUTPUT_BUCKET')
+    # diff_output_bucket = Stemcell::Builder::validate_env('DIFF_OUTPUT_BUCKET')
     cache_dir = Stemcell::Builder::validate_env('CACHE_DIR')
 
     s3_client = S3::Client.new(endpoint: ENV["S3_ENDPOINT"])
@@ -124,23 +124,22 @@ namespace :build do
     puts "generating diff: #{diff_command}"
     `#{diff_command}`
 
-    diff_filename = File.basename diff_path
-    s3_client.put(diff_output_bucket, "patchfiles/#{diff_filename}", diff_path)
-
+    # diff_filename = File.basename diff_path
+    # s3_client.put(diff_output_bucket, "patchfiles/#{diff_filename}", diff_path)
     # Apply patch to create stemcell
-    version_flag = Stemcell::Manifest::Base.strip_version_build_number(version)
-    patch_command = "stembuild -vhd \"#{vhd_path}\" -delta \"#{diff_path}\" -version \"#{version_flag}\" -output \"#{output_directory}\""
-    puts "applying patch: #{patch_command}"
-    `#{patch_command}`
-
-    vsphere.rename_stembuild_output
-
-    # Find stemcell .tgz
-    stemcell_path = Stemcell::Builder::VSphere.find_file_by_extn(output_directory, 'tgz')
-    stemcell_filename = File.basename(stemcell_path)
-
-    upload_keyname = stemcell_filename.gsub('vsphere-esxi', 'diff-vsphere-esxi')
-    s3_client.put(stemcell_output_bucket, upload_keyname, stemcell_path)
+    # version_flag = Stemcell::Manifest::Base.strip_version_build_number(version)
+    # patch_command = "stembuild -vhd \"#{vhd_path}\" -delta \"#{diff_path}\" -version \"#{version_flag}\" -output \"#{output_directory}\""
+    # puts "applying patch: #{patch_command}"
+    # `#{patch_command}`
+    #
+    # vsphere.rename_stembuild_output
+    #
+    # # Find stemcell .tgz
+    # stemcell_path = Stemcell::Builder::VSphere.find_file_by_extn(output_directory, 'tgz')
+    # stemcell_filename = File.basename(stemcell_path)
+    #
+    # upload_keyname = stemcell_filename.gsub('vsphere-esxi', 'diff-vsphere-esxi')
+    # s3_client.put(stemcell_output_bucket, upload_keyname, stemcell_path)
   end
 
   desc 'Build VSphere Stemcell'
