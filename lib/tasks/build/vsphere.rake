@@ -71,6 +71,7 @@ namespace :build do
 
     vhd_version = FileHelper.parse_vhd_version(image_basename)
     diff_path = File.join(output_directory, "patchfile-#{version}-#{vhd_version}")
+    FileUtils.touch(diff_path)
 
     # Look for base vhd and converted vmdk in diffcell worker cache
     vmdk_filename = image_basename + '.vmdk'
@@ -79,51 +80,53 @@ namespace :build do
     vhd_path = File.join(cache_dir, vhd_filename)
 
     # Download files from S3 if not cached
-    if !File.exist?(vmdk_path)
-      s3_client.get(image_bucket, vmdk_filename, vmdk_path)
-    end
-    if !File.exist?(vhd_path)
-      s3_client.get(image_bucket, vhd_filename, vhd_path)
-    end
+    # if !File.exist?(vmdk_path)
+    #   s3_client.get(image_bucket, vmdk_filename, vmdk_path)
+    # end
+    # if !File.exist?(vhd_path)
+    #   s3_client.get(image_bucket, vhd_filename, vhd_path)
+    # end
 
     # Setup base vmx file for packer to use
-    vmx_template_txt = File.read("../ci/bosh-windows-stemcell-builder/create-vsphere-stemcell-from-diff/old-base-vmx.vmx")
-    new_vmx_txt = vmx_template_txt.gsub("INIT_VMDK",vmdk_path)
-    config_vmx = Tempfile.new(["config", ".vmx"])
-    File.write(config_vmx.path, new_vmx_txt)
-    vmx_path = config_vmx.path.gsub("/", "\\")
+    # vmx_template_txt = File.read("../ci/bosh-windows-stemcell-builder/create-vsphere-stemcell-from-diff/old-base-vmx.vmx")
+    # new_vmx_txt = vmx_template_txt.gsub("INIT_VMDK",vmdk_path)
+    # config_vmx = Tempfile.new(["config", ".vmx"])
+    # File.write(config_vmx.path, new_vmx_txt)
+    # vmx_path = config_vmx.path.gsub("/", "\\")
+    #
+    # vsphere = Stemcell::Builder::VSphere.new(
+    #   mem_size: '4096',
+    #   num_vcpus: '4',
+    #   source_path: vmx_path,
+    #   agent_commit: "",
+    #   administrator_password: Stemcell::Builder::validate_env('ADMINISTRATOR_PASSWORD'),
+    #   product_key: Stemcell::Builder::validate_env('PRODUCT_KEY'),
+    #   owner: Stemcell::Builder::validate_env('OWNER'),
+    #   organization: Stemcell::Builder::validate_env('ORGANIZATION'),
+    #   os: Stemcell::Builder::validate_env('OS_VERSION'),
+    #   output_directory: output_directory,
+    #   packer_vars: {},
+    #   version: version,
+    #   skip_windows_update: false,
+    #   new_password: Stemcell::Builder::validate_env('ADMINISTRATOR_PASSWORD'),
+    #   http_proxy: ENV.fetch('UPDATES_HTTP_PROXY', ''),
+    #   https_proxy: ENV.fetch('UPDATES_HTTPS_PROXY', ''),
+    #   bypass_list: ENV.fetch('UPDATES_PROXY_BYPASS_LIST', '')
+    # )
+    #
+    # vsphere.run_packer
+    # output_vmdk_path = File.join(output_directory, Dir.entries("#{output_directory}").detect { |e| File.extname(e) == ".vmdk" })
+    #
+    # signature_command = "gordiff signature #{vhd_path} #{signature_path}"
+    # puts "generating signature: #{signature_command}"
+    # `#{signature_command}`
+    #
+    # diff_command = "gordiff delta #{signature_path} #{output_vmdk_path} #{diff_path}"
+    # puts "generating diff: #{diff_command}"
+    # `#{diff_command}`
 
-    vsphere = Stemcell::Builder::VSphere.new(
-      mem_size: '4096',
-      num_vcpus: '4',
-      source_path: vmx_path,
-      agent_commit: "",
-      administrator_password: Stemcell::Builder::validate_env('ADMINISTRATOR_PASSWORD'),
-      product_key: Stemcell::Builder::validate_env('PRODUCT_KEY'),
-      owner: Stemcell::Builder::validate_env('OWNER'),
-      organization: Stemcell::Builder::validate_env('ORGANIZATION'),
-      os: Stemcell::Builder::validate_env('OS_VERSION'),
-      output_directory: output_directory,
-      packer_vars: {},
-      version: version,
-      skip_windows_update: false,
-      new_password: Stemcell::Builder::validate_env('ADMINISTRATOR_PASSWORD'),
-      http_proxy: ENV.fetch('UPDATES_HTTP_PROXY', ''),
-      https_proxy: ENV.fetch('UPDATES_HTTPS_PROXY', ''),
-      bypass_list: ENV.fetch('UPDATES_PROXY_BYPASS_LIST', '')
-    )
-
-    vsphere.run_packer
-    output_vmdk_path = File.join(output_directory, Dir.entries("#{output_directory}").detect { |e| File.extname(e) == ".vmdk" })
-
-    signature_command = "gordiff signature #{vhd_path} #{signature_path}"
-    puts "generating signature: #{signature_command}"
-    `#{signature_command}`
-
-    diff_command = "gordiff delta #{signature_path} #{output_vmdk_path} #{diff_path}"
-    puts "generating diff: #{diff_command}"
-    `#{diff_command}`
-
+    # TODO: below should be removed
+    #
     # diff_filename = File.basename diff_path
     # s3_client.put(diff_output_bucket, "patchfiles/#{diff_filename}", diff_path)
     # Apply patch to create stemcell
