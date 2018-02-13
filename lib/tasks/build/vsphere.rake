@@ -70,7 +70,7 @@ namespace :build do
     image_basename = File.basename(last_file, File.extname(last_file))
 
     vhd_version = FileHelper.parse_vhd_version(image_basename)
-    diff_path = File.join(output_directory, "patchfile-#{version}-#{vhd_version}")
+    diff_path = File.join(File.expand_path(output_directory), "patchfile-#{version}-#{vhd_version}")
     File.write(diff_path, "")
 
     # Look for base vhd and converted vmdk in diffcell worker cache
