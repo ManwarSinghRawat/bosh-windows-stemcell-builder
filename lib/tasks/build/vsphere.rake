@@ -52,16 +52,16 @@ namespace :build do
   task :vsphere_diff do
     version_dir = Stemcell::Builder::validate_env_dir('VERSION_DIR')
     version = File.read(File.join(version_dir, 'number')).chomp
-    stemcell_output_bucket = Stemcell::Builder::validate_env('STEMCELL_OUTPUT_BUCKET')
-
-    S3.test_upload_permissions(stemcell_output_bucket, ENV["S3_ENDPOINT"])
+    # stemcell_output_bucket = Stemcell::Builder::validate_env('STEMCELL_OUTPUT_BUCKET')
 
     output_directory = Stemcell::Builder::validate_env('OUTPUT_DIR') # packer-output must not exist before packer is run!
     signature_path = File.join(output_directory, 'signature')
 
     image_bucket = Stemcell::Builder::validate_env('VHD_VMDK_BUCKET')
-    # diff_output_bucket = Stemcell::Builder::validate_env('DIFF_OUTPUT_BUCKET')  TODO: remove once bottom block is removed
+    diff_output_bucket = Stemcell::Builder::validate_env('DIFF_OUTPUT_BUCKET')
     cache_dir = Stemcell::Builder::validate_env('CACHE_DIR')
+
+    S3.test_upload_permissions(diff_output_bucket, ENV["S3_ENDPOINT"])
 
     s3_client = S3::Client.new(endpoint: ENV["S3_ENDPOINT"])
 
@@ -124,10 +124,10 @@ namespace :build do
     puts "generating diff: #{diff_command}"
     `#{diff_command}`
 
+    diff_filename = File.basename diff_path
+    s3_client.put(diff_output_bucket, "patchfiles/#{diff_filename}", diff_path)
+
     # TODO: below should be removed. Also remove commented line above if removing this code
-    #
-    # diff_filename = File.basename diff_path
-    # s3_client.put(diff_output_bucket, "patchfiles/#{diff_filename}", diff_path)
     # Apply patch to create stemcell
     # version_flag = Stemcell::Manifest::Base.strip_version_build_number(version)
     # patch_command = "stembuild -vhd \"#{vhd_path}\" -delta \"#{diff_path}\" -version \"#{version_flag}\" -output \"#{output_directory}\""
