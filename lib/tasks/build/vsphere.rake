@@ -124,7 +124,7 @@ namespace :build do
     `#{diff_command}`
 
     diff_filename = File.basename diff_path
-    s3_client.put(diff_output_bucket, "patchfiles/#{diff_filename}", diff_path)
+    s3_client.put(diff_output_bucket, diff_filename, diff_path)
   end
 
   desc 'Build VSphere Stemcell'
