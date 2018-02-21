@@ -125,7 +125,7 @@ namespace :build do
     `#{diff_command}`
 
     diff_filename = File.basename diff_path
-    s3_client.put(diff_output_bucket, "patchfiles/#{diff_filename}", diff_path)
+    s3_client.put(diff_output_bucket, "#{diff_filename}", diff_path)
 
     # TODO: below should be removed. Also remove commented line above if removing this code
     # Apply patch to create stemcell
