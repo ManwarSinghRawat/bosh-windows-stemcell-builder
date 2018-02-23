@@ -49,7 +49,7 @@ namespace :build do
   end
 
   desc 'Build VSphere Diff and create stemcell with it'
-  task :vsphere_diff do
+  task :vsphere_patchfile do
     version_dir = Stemcell::Builder::validate_env_dir('VERSION_DIR')
     version = File.read(File.join(version_dir, 'number')).chomp
 

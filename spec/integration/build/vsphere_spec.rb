@@ -21,7 +21,7 @@ describe 'VSphere' do
 
     Rake::Task['build:vsphere'].reenable
     Rake::Task['build:vsphere_add_updates'].reenable
-    Rake::Task['build:vsphere_diff'].reenable
+    Rake::Task['build:vsphere_patchfile'].reenable
   end
 
   after(:each) do
@@ -172,14 +172,10 @@ describe 'VSphere' do
     end
 
     it 'should build a vsphere stemcell from diff' do
-      Rake::Task['build:vsphere_diff'].invoke
+      Rake::Task['build:vsphere_patchfile'].invoke
 
       packer_output_vmdk = File.join(@output_directory, 'fake.vmdk')
       expect(packer_output_vmdk).not_to be_nil
-      stembuild_version_arg = JSON.parse(File.read("#{@output_directory}/myargs"))[5]
-      expect(stembuild_version_arg).to eq('1200.3')
-      stemcell_filename = File.basename(Dir["#{@output_directory}/*.tgz"].first)
-      expect(stemcell_filename).to eq "bosh-stemcell-1200.3.1-build.2-vsphere-esxi-windows2012R2-go_agent.tgz"
     end
 
     context 'when we are not authorized to upload to the S3 bucket' do
@@ -189,7 +185,7 @@ describe 'VSphere' do
 
       it 'should fail before building the stemcell' do
         expect do
-          Rake::Task['build:vsphere_diff'].invoke
+          Rake::Task['build:vsphere_patchfile'].invoke
         end.to raise_exception(Aws::S3::Errors::Forbidden)
 
         files = Dir.glob(File.join(@output_directory, '*').gsub('\\', '/'))
