@@ -47,6 +47,7 @@ describe S3 do
           expect{ @s3_client.get(bucket, key, file_name) }.to output(
             /Downloading the with\/slashes\/some-file-in-s3 from bucket to some-local-filename*/
           ).to_stdout
+          FileUtils.remove('some-local-filename')
         end
       end
       context 'when bucket does not contain slashes' do
@@ -57,6 +58,7 @@ describe S3 do
           expect{ @s3_client.get(bucket, key, file_name) }.to output(
             /Downloading the some-file-in-s3 from bucket-without-slashes to some-local-filename*/
           ).to_stdout
+          FileUtils.remove('some-local-filename')
         end
       end
       context 'when a directory in the file path does not exist' do
